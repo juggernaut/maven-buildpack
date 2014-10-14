@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# fail fast
+set -o errexit
+set -o nounset
+set -o pipefail
+
+scriptname=$(basename $0)
+
+if [ -f /etc/redhat-release ]
+then
+  cat <<EOT
+---
+packages:
+  - apache-maven
+  - rpm-build
+EOT

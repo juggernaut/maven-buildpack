@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# fail fast
+set -o errexit
+set -o nounset
+set -o pipefail
+
+usage() {
+  echo "compile: usage: compile BUILD_DIR CACHE_DIR ENV_DIR"
+}
+
+indent() {
+  local c='s/^/       /'
+  case $(uname) in
+    # mac/bsd sed: -l buffers on line boundaries
+    Darwin) sed -l "$c";;
+    # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+    *) sed -u "$c";;
+  esac
+}
+
+main() {
+  local build_dir
+  local cache_dir
+  local env_dir
+  local target
+
+  case $# in
+    2) build_dir="$1"; cache_dir="$2";;
+    3) build_dir="$1"; cache_dir="$2"; env_dir="$3";;
+    *) usage >&2; exit 2;;
+  esac
+
+  cd $build_dir >/dev/null 2>&1
+
+  echo "-----> Running: mvn"
+  mvn install 2>&1 | indent
+
+  echo "-----> Running: mvn rpm:rpm"
+  mvn rpm:rpm 2>&1 | indent
+
+  cd - >/dev/null 2>&1
+}
+
+case "$0" in
+  "$BASH_SOURCE") main "$@";;
+esac
+
